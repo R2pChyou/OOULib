@@ -1,0 +1,9 @@
+{
+  "version" : "0.01",
+  "friendlyName" : "Outside Observable Universe Library",
+  "link" : "",
+  "steamContentId" : "",
+  "name" : "OOULib",
+  "description" : "A lua library that could set new features to weapons,weapon ability,objects,vehicles and so on.",
+  "author" : "R2p"
+}
