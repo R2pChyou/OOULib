@@ -15,9 +15,20 @@ function init()
   self.worldBottomDeathLevel = 5
   self.maxHealth = config.getParameter("maxHealth") or 1000
 
+  --damage 
+  self.lastPosition = mcontroller.position()
+  self.collisionDamageTrackingVelocities = {}
+  self.collisionNotificationTrackingVelocities = {}
+  self.selfDamageNotifications = {}
+  self.protection = config.getParameter("protection") or 20
+  self.materialKind = config.getParameter("materialKind") or "robotic"
+
+  --store flag
   self.stored = false
+
   --get owner key
   self.ownerKey = config.getParameter("ownerKey")
+  vehicle.setPersistent(self.ownerKey)
 
   --get health
   if not (storage.health) then
@@ -29,6 +40,8 @@ function init()
        storage.health = math.min(startHealthFactor * self.maxHealth, self.maxHealth)
     end
     --animator.setAnimationState("movement", "warpInPart1")
+  else 
+    animator.setAnimationState("movement","idle")
   end
 
   --handle "store" message
@@ -173,4 +186,40 @@ end
 
 function updateDamage()
     --accept damage
+    if storage.health <= 0 then
+        vehicle.destroy()
+        --show broken visual effect
+        --play broken sound
+    end
+
+end
+
+function applyDamage(damageRequest)
+  local damage = 0
+  if damageRequest.damageType == "Damage" then
+    damage = damage + root.evalFunction2("protection", damageRequest.damage, self.protection)
+  elseif damageRequest.damageType == "IgnoresDef" then
+    damage = damage + damageRequest.damage
+  else
+    return {}
+  end
+
+  --setDamageEmotes()
+
+  --updateVisualEffects(storage.health, damage, self.headlightsOn)
+
+  local healthLost = math.min(damage, storage.health)
+  storage.health = storage.health - healthLost
+
+  return {{
+    sourceEntityId = damageRequest.sourceEntityId,
+    targetEntityId = entity.id(),
+    position = mcontroller.position(),
+    damageDealt = damage,
+    healthLost = healthLost,
+    hitType = "Hit",
+    damageSourceKind = damageRequest.damageSourceKind,
+    targetMaterialKind = self.materialKind,
+    killed = storage.health <= 0
+  }}
 end
